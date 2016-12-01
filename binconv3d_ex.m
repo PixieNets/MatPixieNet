@@ -19,4 +19,7 @@ for f = 1:K
 end
 r = binconv3d_matlab(I, Aflip, 'valid')
 m = binconv3d(I, A, 'valid')
-fprintf('Error in 3d-4d convolution = %f\n', mean(abs(r(:) - m(:))));
+fprintf('Error in 3d-4d VALID convolution = %f\n', mean(abs(r(:) - m(:))));
+r = binconv3d_matlab(I, Aflip, 'same')
+m = binconv3d(I, A, 'same')
+fprintf('Error in 3d-4d SAME convolution = %f\n', mean(abs(r(:) - m(:))));

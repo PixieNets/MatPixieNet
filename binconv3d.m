@@ -38,47 +38,48 @@ spatial_ext = size(weights); spatial_ext = spatial_ext(1:2);
 pad = [0, 0]; % 'valid' convolution
 if strcmp(type, 'same')
     pad = (size(weights) - 1) ./ 2; pad = pad(1:2);
+    new_input = zeros([rows_in + 2*pad(1), cols_in + 2*pad(2), channels]);
+    new_input((pad(1) + 1):(end - pad(1)), (pad(2) + 1):(end - pad(2)), :) = input;
+    input = new_input;
 end
 
 rows_out = (rows_in - spatial_ext(1) + 2*pad(1)) / stride + 1;
 cols_out = (cols_in - spatial_ext(2) + 2*pad(2)) / stride + 1;
-result = zeros(rows_out, cols_out, filters);
 
-if strcmp(type, 'valid')
-    % Implementation 1 - WORKS
-%     for f = 1:filters
-%         for ch = 1:channels
-%             col_input = im2col(input(:, :, ch), spatial_ext);
-%             kernel = weights(:, :, ch, f);
-%             result(:, :, f) = result(:, :, f) + ...
-%                               reshape(col_input' * kernel(:), ...
-%                                       [rows_out, cols_out]);
-%                                       
-%         end
-%     end
-    % Implementation 2 - WORKS
+% Implementation 1 - WORKS
+% for f = 1:filters
 %     for ch = 1:channels
 %         col_input = im2col(input(:, :, ch), spatial_ext);
-%         for f = 1:filters
-%             kernel = weights(:, :, ch, f);
-%             result(:, :, f) = result(:, :, f) + ...
-%                               reshape(col_input' * kernel(:), ...
-%                                       [rows_out, cols_out]); 
-%         end
+%         kernel = weights(:, :, ch, f);
+%         result(:, :, f) = result(:, :, f) + ...
+%                           reshape(col_input' * kernel(:), ...
+%                                   [rows_out, cols_out]);
+% 
 %     end
-    % Implementation 3 - WORKS
-    col_input = zeros([spatial_ext(1) * spatial_ext(2) * channels, rows_out * cols_out]);
-    kernel_input = zeros([spatial_ext(1) * spatial_ext(2) * channels, filters]);
-    for ch = 1:channels
-        start_idx = ch * (spatial_ext(1) * spatial_ext(2));
-        end_idx = start_idx + (spatial_ext(1) * spatial_ext(2)) - 1;
-        % input
-        col_input(start_idx:end_idx, :) = im2col(input(:, :, ch), spatial_ext);
-        % weights
-        kernel_input(start_idx:end_idx, :) = reshape(weights(:, :, ch, :), ...
-                                                     [spatial_ext(1) * spatial_ext(2), filters]);
-    end
-    result = reshape(col_input' * kernel_input, [rows_out, cols_out, filters]);
+% end
+% Implementation 2 - WORKS
+% for ch = 1:channels
+%     col_input = im2col(input(:, :, ch), spatial_ext);
+%     for f = 1:filters
+%         kernel = weights(:, :, ch, f);
+%         result(:, :, f) = result(:, :, f) + ...
+%                           reshape(col_input' * kernel(:), ...
+%                                   [rows_out, cols_out]); 
+%     end
+% end
+% Implementation 3 - WORKS
+col_input = zeros([spatial_ext(1) * spatial_ext(2) * channels, rows_out * cols_out]);
+kernel_input = zeros([spatial_ext(1) * spatial_ext(2) * channels, filters]);
+for ch = 1:channels
+    start_idx = ch * (spatial_ext(1) * spatial_ext(2));
+    end_idx = start_idx + (spatial_ext(1) * spatial_ext(2)) - 1;
+    % input
+    col_input(start_idx:end_idx, :) = im2col(input(:, :, ch), spatial_ext);
+    % weights
+    kernel_input(start_idx:end_idx, :) = reshape(weights(:, :, ch, :), ...
+                                                 [spatial_ext(1) * spatial_ext(2), filters]);
 end
+result = reshape(col_input' * kernel_input, [rows_out, cols_out, filters]);
+
 
 end

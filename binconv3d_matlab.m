@@ -44,11 +44,14 @@ rows_out = (rows_in - spatial_ext(1) + 2*pad(1)) / stride + 1;
 cols_out = (cols_in - spatial_ext(2) + 2*pad(2)) / stride + 1;
 result = zeros(rows_out, cols_out, filters);
 
-if strcmp(type, 'valid')
-    for f = 1:filters
-        for ch = 1:channels
+for f = 1:filters
+    for ch = 1:channels
+        if strcmp(type, 'valid')
             result(:, :, f) = result(:, :, f) + ...
                               conv2(input(:, :, ch), weights(:, :, ch, f), 'valid');
+        elseif strcmp(type, 'same')
+            result(:, :, f) = result(:, :, f) + ...
+                              conv2(input(:, :, ch), weights(:, :, ch, f), 'same');
         end
     end
 end
